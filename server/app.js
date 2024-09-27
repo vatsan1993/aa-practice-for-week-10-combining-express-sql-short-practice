@@ -77,19 +77,11 @@ app.get('/colors/add/:name', (req, res, next) => {
   // Your code here
   db.run(sql, params, (err) => {
     if (err) {
-      res.json({
-        status: err.statusCode || 500,
-        message: err.message || 'Unable to insert the data',
-        stack: err.stack,
-      });
+      next(err);
     } else {
       db.get(sqlLast, (err, row) => {
         if (err) {
-          res.json({
-            status: err.statusCode || 500,
-            message: err.message || 'Unable to get the data',
-            stack: err.stack,
-          });
+          next(err);
         } else {
           res.json(row);
         }
