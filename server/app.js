@@ -10,63 +10,99 @@ const DATA_SOURCE = 'app.db';
  * Step 1 - Connect to the database
  */
 // Your code here
+const sqlite3 = require('sqlite3');
+const db = new sqlite3.Database(DATA_SOURCE, sqlite3.OPEN_READWRITE, () => {
+  console.log('db connected');
+});
 
 // Express using json - DO NOT MODIFY
 app.use(express.json());
 
 // List of all colors in the database - DO NOT MODIFY
 app.get('/colors', (req, res, next) => {
-    const sql = 'SELECT * FROM colors';
-    const params = [];
+  const sql = 'SELECT * FROM colors';
+  const params = [];
 
-    db.all(sql, params, (err, rows) => {
-        res.json(rows);
-    });
+  db.all(sql, params, (err, rows) => {
+    res.json(rows);
+  });
 });
 
 // One color by id
 app.get('/colors/:id', (req, res, next) => {
-    /**
-     * STEP 2A - SQL Statement
-     */
-    // Your code here
-
-    /**
-     * STEP 2B - SQL Parameters
-     */
-    // Your code here
-
-    /**
-     * STEP 2C - Call database function
-     *  - return response
-     */
-    // Your code here
+  /**
+   * STEP 2A - SQL Statement
+   */
+  // Your code here
+  let sql = 'select * from colors where id = ?';
+  /**
+   * STEP 2B - SQL Parameters
+   */
+  // Your code here
+  let params = [req.params.id];
+  /**
+   * STEP 2C - Call database function
+   *  - return response
+   */
+  // Your code here
+  db.get(sql, params, (err, rows) => {
+    if (err) {
+      res.json({
+        status: err.statusCode || 500,
+        message: err.message || 'Unable to get the data',
+        stack: err.stack,
+      });
+    } else {
+      res.json(rows);
+    }
+  });
 });
 
 // Add color
 app.get('/colors/add/:name', (req, res, next) => {
-    // SQL INSERT
-    const sql = "INSERT INTO colors (name) VALUES (?)";
-    const params = [req.params.name];
+  // SQL INSERT
+  const sql = 'INSERT INTO colors (name) VALUES (?)';
+  const params = [req.params.name];
 
-    // SQL QUERY NEW ROW
-    const sqlLast = 'SELECT * FROM colors ORDER BY id DESC LIMIT 1';
+  // SQL QUERY NEW ROW
+  const sqlLast = 'SELECT * FROM colors ORDER BY id DESC LIMIT 1';
 
-    /**
-     * STEP 3 - After INSERT, return the new row
-     *  - insert
-     *  - if error, go to next()
-     *  - if no error, query for new row
-     *  - return new row
-     */
-    // Your code here
-})
+  /**
+   * STEP 3 - After INSERT, return the new row
+   *  - insert
+   *  - if error, go to next()
+   *  - if no error, query for new row
+   *  - return new row
+   */
+  // Your code here
+  db.run(sql, params, (err) => {
+    if (err) {
+      res.json({
+        status: err.statusCode || 500,
+        message: err.message || 'Unable to insert the data',
+        stack: err.stack,
+      });
+    } else {
+      db.get(sqlLast, (err, row) => {
+        if (err) {
+          res.json({
+            status: err.statusCode || 500,
+            message: err.message || 'Unable to get the data',
+            stack: err.stack,
+          });
+        } else {
+          res.json(row);
+        }
+      });
+    }
+  });
+});
 
 // Root route - DO NOT MODIFY
 app.get('/', (req, res) => {
-    res.json({
-        message: "API server is running"
-    });
+  res.json({
+    message: 'API server is running',
+  });
 });
 
 // Set port and listen for incoming requests - DO NOT MODIFY
